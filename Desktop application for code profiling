@@ -1,0 +1,37 @@
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QPushButton
+
+class CodeProfilerApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Code Profiler")
+        self.setGeometry(100, 100, 600, 400)
+
+        self.text_editor = QPlainTextEdit(self)
+        self.text_editor.setGeometry(10, 10, 580, 300)
+
+        self.profile_button = QPushButton("Profile Code", self)
+        self.profile_button.setGeometry(10, 320, 100, 30)
+        self.profile_button.clicked.connect(self.profile_code)
+
+    def profile_code(self):
+        code = self.text_editor.toPlainText()
+        try:
+            profile_output = ""
+            exec("import cProfile\n" + code, globals(), locals())
+            cProfile.run(code, filename="profile_stats")
+            with open("profile_stats", "r") as file:
+                profile_output = file.read()
+            self.display_profile_output(profile_output)
+        except Exception as e:
+            self.display_profile_output(str(e))
+
+    def display_profile_output(self, output):
+        self.text_editor.clear()
+        self.text_editor.insertPlainText(output)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = CodeProfilerApp()
+    window.show()
+    sys.exit(app.exec_())
